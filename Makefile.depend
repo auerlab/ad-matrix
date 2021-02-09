@@ -1,0 +1,3 @@
+ad-matrix.o: ad-matrix.c ad-matrix.h
+	${CC} -c ${CFLAGS} ad-matrix.c
+
