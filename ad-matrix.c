@@ -26,12 +26,12 @@ int     main(int argc,char *argv[])
 {
     file_list_t file_list;
     char        *list_filename = argv[1],
-		*matrix_filename = argv[2];
+		*matrix_filename_stem = argv[2];
     
     if ( argc != 3 )
 	usage(argv);
     open_files(list_filename, &file_list, "r");
-    build_matrix(&file_list, matrix_filename);
+    build_matrix(&file_list, matrix_filename_stem);
     return EX_OK;
 }
 
@@ -130,8 +130,8 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 		*alt_count,
 		*ref_alt_count,
 		*low_chrom,
-		ref_matrix_filename[PATH_MAX + 1],
-		ref_alt_matrix_filename[PATH_MAX + 1];
+		ref_matrix_pipe[PATH_MAX + 1],
+		ref_alt_matrix_pipe[PATH_MAX + 1];
     FILE        *ref_matrix_fp,
 		*ref_alt_matrix_fp;
     
@@ -143,18 +143,19 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	exit(EX_UNAVAILABLE);
     }
     
-    snprintf(ref_matrix_filename, PATH_MAX, "%s-ref.tsv", matrix_stem);
-    if ( (ref_matrix_fp = fopen(ref_matrix_filename, "w")) == NULL )
+    /* Use a lower compression level than default 6 so xz can keep up */
+    snprintf(ref_matrix_pipe, PATH_MAX, "xz -4 - > %s-ref.tsv.xz", matrix_stem);
+    if ( (ref_matrix_fp = popen(ref_matrix_pipe, "w")) == NULL )
     {
-	fprintf(stderr, "Cannot open %s: %s\n", ref_matrix_filename,
+	fprintf(stderr, "Cannot open %s: %s\n", ref_matrix_pipe,
 		strerror(errno));
 	exit(EX_CANTCREAT);
     }
     
-    snprintf(ref_alt_matrix_filename, PATH_MAX, "%s-ref+alt.tsv", matrix_stem);
-    if ( (ref_alt_matrix_fp = fopen(ref_alt_matrix_filename, "w")) == NULL )
+    snprintf(ref_alt_matrix_pipe, PATH_MAX, "xz -4 - > %s-ref+alt.tsv.xz", matrix_stem);
+    if ( (ref_alt_matrix_fp = popen(ref_alt_matrix_pipe, "w")) == NULL )
     {
-	fprintf(stderr, "Cannot open %s: %s\n", ref_alt_matrix_filename,
+	fprintf(stderr, "Cannot open %s: %s\n", ref_alt_matrix_pipe,
 		strerror(errno));
 	exit(EX_CANTCREAT);
     }
@@ -288,8 +289,8 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	if ( ++rows % 1000 == 0 )
 	    fprintf(stderr, "%zu\r", rows);
     }
-    fclose(ref_matrix_fp);
-    fclose(ref_alt_matrix_fp);
+    pclose(ref_matrix_fp);
+    pclose(ref_alt_matrix_fp);
     fprintf(stderr, "Done!\n");
 }
 
