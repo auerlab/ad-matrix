@@ -17,6 +17,7 @@
 #include <tsvio.h>
 #include <vcfio.h>
 #include <biostring.h>
+#include <errno.h>
 
 #include "ad-matrix.h"
 
@@ -49,7 +50,6 @@ void    open_files(char *list_filename, file_list_t *file_list, char *mode)
 
 {
     FILE        *fp;
-    extern int  errno;
     char        *temp_filename;
     size_t      actual_len,
 		c;
@@ -104,6 +104,7 @@ void    open_files(char *list_filename, file_list_t *file_list, char *mode)
 	}
     }        
     fclose(fp);
+    puts("All files opened.");
 }
 
 
@@ -116,30 +117,46 @@ void    open_files(char *list_filename, file_list_t *file_list, char *mode)
  *  2021-02-09  Jason Bacon Begin
  ***************************************************************************/
 
-void    build_matrix(file_list_t *file_list, char *matrix_file)
+void    build_matrix(file_list_t *file_list, char *matrix_stem)
 
 {
     size_t      c,
 		low_pos,
-		open_count;
+		open_count,
+		rows = 0;
     vcf_call_t  *vcf_call;
-    bool        *updated;
+    int         chr_cmp;
     char        *ref_count,
 		*alt_count,
-		*depth,
-		*low_chrom;
+		*ref_alt_count,
+		*low_chrom,
+		ref_matrix_filename[PATH_MAX + 1],
+		ref_alt_matrix_filename[PATH_MAX + 1];
+    FILE        *ref_matrix_fp,
+		*ref_alt_matrix_fp;
     
     vcf_call = (vcf_call_t *)malloc(file_list->count * sizeof(vcf_call_t));
     if ( vcf_call == NULL )
     {
 	fprintf(stderr, "build_matrix(): Could not allocate vcf_call array.\n");
+	fprintf(stderr, "Size = %zu\n", file_list->count * sizeof(vcf_call_t));
 	exit(EX_UNAVAILABLE);
     }
-    updated = (bool *)malloc(file_list->count * sizeof(bool));
-    if ( updated == NULL )
+    
+    snprintf(ref_matrix_filename, PATH_MAX, "%s-ref.tsv", matrix_stem);
+    if ( (ref_matrix_fp = fopen(ref_matrix_filename, "w")) == NULL )
     {
-	fprintf(stderr, "build_matrix(): Could not allocate updated array.\n");
-	exit(EX_UNAVAILABLE);
+	fprintf(stderr, "Cannot open %s: %s\n", ref_matrix_filename,
+		strerror(errno));
+	exit(EX_CANTCREAT);
+    }
+    
+    snprintf(ref_alt_matrix_filename, PATH_MAX, "%s-ref+alt.tsv", matrix_stem);
+    if ( (ref_alt_matrix_fp = fopen(ref_alt_matrix_filename, "w")) == NULL )
+    {
+	fprintf(stderr, "Cannot open %s: %s\n", ref_alt_matrix_filename,
+		strerror(errno));
+	exit(EX_CANTCREAT);
     }
     
     /*
@@ -150,32 +167,61 @@ void    build_matrix(file_list_t *file_list, char *matrix_file)
      */
 
     /* First call from each sample file */
+    puts("Reading first call from each sample...");
     for (c = 0; c < file_list->count; ++c)
     {
-	if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
-			      VCF_SAMPLE_MAX_CHARS) == VCF_OK )
+	vcf_call_init(&vcf_call[c], 16, 32, 64);
+	if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c]) == VCF_OK )
 	{
-	    printf("%s %s %zu %s\n", file_list->filename[c],
+#ifdef DEBUG
+	    fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
+		    c, file_list->filename[c],
 		    VCF_CHROMOSOME(&vcf_call[c]),
 		    VCF_POS(&vcf_call[c]), VCF_SINGLE_SAMPLE(&vcf_call[c]));
+	    fprintf(ref_alt_matrix_fp, "%zu %s %s %zu %s\n",
+		    c, file_list->filename[c],
+		    VCF_CHROMOSOME(&vcf_call[c]),
+		    VCF_POS(&vcf_call[c]), VCF_SINGLE_SAMPLE(&vcf_call[c]));
+#endif
+	}
+	else
+	{
+	    fprintf(stderr,
+		    "build_matrix(): Failed to read VCF call from %s.\n",
+		    file_list->filename[c]);
+	    exit(EX_DATAERR);
 	}
     }
+    puts("First calls read.");
 
     open_count = file_list->count;
     while ( open_count > 0 )
     {
-	/* Find lowest pos among all samples */
-	low_pos = VCF_POS(&vcf_call[0]);
-	low_chrom = VCF_CHROMOSOME(&vcf_call[0]);
-	for (c = 1; c < file_list->count; ++c)
-	    if ( (file_list->fp[c] != NULL) &&
-		 (chromosome_name_cmp(VCF_CHROMOSOME(&vcf_call[c]),low_chrom) <= 0) &&
-		 (VCF_POS(&vcf_call[c]) < low_pos) )
+	/*
+	 *  Find lowest pos among all samples
+	 */
+	
+	/* Skip over finished sample files */
+	for (c = 0; file_list->fp[c] == NULL; ++c)
+	    ;
+	
+	/* Assume first sample has lowest position than scan the rest */
+	low_pos = VCF_POS(&vcf_call[c]);
+	low_chrom = VCF_CHROMOSOME(&vcf_call[c]);
+	for (c = c + 1; c < file_list->count; ++c)
+	{
+	    chr_cmp = chromosome_name_cmp(VCF_CHROMOSOME(&vcf_call[c]),low_chrom);
+	    if ( (file_list->fp[c] != NULL) && ((chr_cmp < 0) ||
+		    ((chr_cmp == 0) && (VCF_POS(&vcf_call[c]) < low_pos))) )
+	    {
 		low_pos = VCF_POS(&vcf_call[c]);
+		low_chrom = VCF_CHROMOSOME(&vcf_call[c]);
+	    }
+	}
 	
 	/* Output row for low pos, read next call for represented samples */
-	printf("%s\t%zu\t", low_chrom, low_pos);
-	fflush(stdout);
+	fprintf(ref_matrix_fp, "%s\t%zu\t", low_chrom, low_pos);
+	fprintf(ref_alt_matrix_fp, "%s\t%zu\t", low_chrom, low_pos);
 	for (c = 0; c < file_list->count; ++c)
 	{
 	    if ( (file_list->fp[c] != NULL) &&
@@ -190,39 +236,69 @@ void    build_matrix(file_list_t *file_list, char *matrix_file)
 		strsep(&alt_count, ",");
 		
 		/* Find start of depth, already null-terminated, last field */
-		depth = alt_count;
-		strsep(&depth, ":");
-		printf("%s,%s\t", ref_count, depth);
-		if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
-				      VCF_SAMPLE_MAX_CHARS) == VCF_READ_EOF )
+		ref_alt_count = alt_count;
+		strsep(&ref_alt_count, ":");
+		fprintf(ref_matrix_fp, "%s\t", ref_count);
+		fprintf(ref_alt_matrix_fp, "%s\t", ref_alt_count);
+		if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c]) ==
+			VCF_READ_EOF )
 		{
+		    fprintf(stderr, "Closing %zu %s\n", c,
+			    file_list->filename[c]);
 		    fclose(file_list->fp[c]);
 		    file_list->fp[c] = NULL;
+		    --open_count;
 		}
-		updated[c] = true;
 	    }
 	    else
 	    {
-		printf(".\t");
-		updated[c] = false;
+		fprintf(ref_matrix_fp, ".\t");
+		fprintf(ref_alt_matrix_fp, ".\t");
 	    }
 	}
-	putchar('\n');
+	putc('\n', ref_matrix_fp);
+	putc('\n', ref_alt_matrix_fp);
 	
-	/* Debug */
+#ifdef DEBUG
 	for (c = 0; c < file_list->count; ++c)
-	    if ( updated[c] )
-		printf("%s %s %zu %s\n", file_list->filename[c],
+	{
+	    if ( file_list->fp[c] != NULL )
+	    {
+		fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
+			c, file_list->filename[c],
 			VCF_CHROMOSOME(&vcf_call[c]),
 			VCF_POS(&vcf_call[c]),
 			VCF_SINGLE_SAMPLE(&vcf_call[c]));
+		fprintf(ref_alt_matrix_fp, "%zu %s %s %zu %s\n",
+			c, file_list->filename[c],
+			VCF_CHROMOSOME(&vcf_call[c]),
+			VCF_POS(&vcf_call[c]),
+			VCF_SINGLE_SAMPLE(&vcf_call[c]));
+	    }
+	    else
+	    {
+		fprintf(ref_matrix_fp, "%zu %s EOF\n",
+			c, file_list->filename[c]);
+		fprintf(ref_alt_matrix_fp, "%zu %s EOF\n",
+			c, file_list->filename[c]);
+	    }
+	}
+#endif
+
+	if ( ++rows % 1000 == 0 )
+	    fprintf(stderr, "%zu\r", rows);
     }
+    fclose(ref_matrix_fp);
+    fclose(ref_alt_matrix_fp);
+    fprintf(stderr, "Done!\n");
 }
 
 
 void    usage(char *argv[])
 
 {
-    fprintf(stderr, "Usage: %s filename-with-list-of-VCFs matrix-output-filename\n", argv[0]);
+    fprintf(stderr, "Usage: %s filename-with-list-of-VCFs matrix-output-stem\n", argv[0]);
+    fprintf(stderr, "Two matrix files are produced, named\n");
+    fprintf(stderr, "<matrix-output-stem>-ref.tsv and <matrix-output-stem>-ref+alt.tsv\n");
     exit(EX_USAGE);
 }

@@ -46,6 +46,7 @@ ad-matrix
 *.su
 *.idb
 *.pdb
+.ape_compile_errors
 
 # Kernel Module Compile Results
 *.mod*
