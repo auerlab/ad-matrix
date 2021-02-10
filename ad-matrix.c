@@ -143,8 +143,12 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	exit(EX_UNAVAILABLE);
     }
     
-    /* Use a lower compression level than default 6 so xz can keep up */
-    snprintf(ref_matrix_pipe, PATH_MAX, "xz -4 - > %s-ref.tsv.xz", matrix_stem);
+    /*
+     *  Use a lower compression level than default 6 so xz can keep up
+     *  No difference in output size between -3 and -4 so might as well
+     *  not waste CPU time and electricity
+     */
+    snprintf(ref_matrix_pipe, PATH_MAX, "xz -3 - > %s-ref.tsv.xz", matrix_stem);
     if ( (ref_matrix_fp = popen(ref_matrix_pipe, "w")) == NULL )
     {
 	fprintf(stderr, "Cannot open %s: %s\n", ref_matrix_pipe,
@@ -152,7 +156,7 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	exit(EX_CANTCREAT);
     }
     
-    snprintf(ref_alt_matrix_pipe, PATH_MAX, "xz -4 - > %s-ref+alt.tsv.xz", matrix_stem);
+    snprintf(ref_alt_matrix_pipe, PATH_MAX, "xz -3 - > %s-ref+alt.tsv.xz", matrix_stem);
     if ( (ref_alt_matrix_fp = popen(ref_alt_matrix_pipe, "w")) == NULL )
     {
 	fprintf(stderr, "Cannot open %s: %s\n", ref_alt_matrix_pipe,
