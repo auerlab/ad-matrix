@@ -1,4 +1,5 @@
 ad-matrix.o: ad-matrix.c ../local/include/tsvio.h \
-  ../local/include/vcfio.h ../local/include/biostring.h ad-matrix.h
+  ../local/include/vcfio.h ../local/include/dsvio.h \
+  ../local/include/biostring.h ad-matrix.h
 	${CC} -c ${CFLAGS} ad-matrix.c
 
