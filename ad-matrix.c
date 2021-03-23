@@ -14,7 +14,7 @@
 #include <limits.h>
 #include <stdbool.h>
 
-#include <tsvio.h>
+#include <dsvio.h>
 #include <vcfio.h>
 #include <biostring.h>
 #include <errno.h>
