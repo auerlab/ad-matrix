@@ -13,11 +13,9 @@
 #include <sysexits.h>
 #include <limits.h>
 #include <stdbool.h>
-
-#include <dsvio.h>
-#include <vcfio.h>
-#include <biostring.h>
 #include <errno.h>
+#include <biolibc/dsv.h>
+#include <biolibc/vcf.h>
 
 #include "ad-matrix.h"
 
