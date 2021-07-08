@@ -16,6 +16,7 @@
 #include <errno.h>
 #include <biolibc/dsv.h>
 #include <biolibc/vcf.h>
+#include <biolibc/biostring.h>
 
 #include "ad-matrix.h"
 
