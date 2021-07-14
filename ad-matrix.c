@@ -175,7 +175,8 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
     for (c = 0; c < file_list->count; ++c)
     {
 	vcf_call_init(&vcf_call[c], 16, 32, 64);
-	if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c]) == BIO_READ_OK )
+	if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
+			      VCF_FIELD_ALL) == BIO_READ_OK )
 	{
 #ifdef DEBUG
 	    fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
@@ -244,8 +245,8 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 		strsep(&ref_alt_count, ":");
 		fprintf(ref_matrix_fp, "%s\t", ref_count);
 		fprintf(ref_alt_matrix_fp, "%s\t", ref_alt_count);
-		if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c]) ==
-			BIO_READ_EOF )
+		if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
+				      VCF_FIELD_ALL) == BIO_READ_EOF )
 		{
 		    fprintf(stderr, "Closing %zu %s\n", c,
 			    file_list->filename[c]);
