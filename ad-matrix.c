@@ -123,7 +123,7 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 		low_pos,
 		open_count,
 		rows = 0;
-    vcf_call_t  *vcf_call;
+    bl_vcf_t  *vcf_call;
     int         chr_cmp;
     char        *ref_count,
 		*alt_count,
@@ -134,11 +134,11 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
     FILE        *ref_matrix_fp,
 		*ref_alt_matrix_fp;
     
-    vcf_call = (vcf_call_t *)malloc(file_list->count * sizeof(vcf_call_t));
+    vcf_call = (bl_vcf_t *)malloc(file_list->count * sizeof(bl_vcf_t));
     if ( vcf_call == NULL )
     {
 	fprintf(stderr, "build_matrix(): Could not allocate vcf_call array.\n");
-	fprintf(stderr, "Size = %zu\n", file_list->count * sizeof(vcf_call_t));
+	fprintf(stderr, "Size = %zu\n", file_list->count * sizeof(bl_vcf_t));
 	exit(EX_UNAVAILABLE);
     }
     
@@ -176,7 +176,7 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
     {
 	vcf_call_init(&vcf_call[c], 16, 32, 64);
 	if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
-			      VCF_FIELD_ALL) == BIO_READ_OK )
+			      VCF_FIELD_ALL) == BL_READ_OK )
 	{
 #ifdef DEBUG
 	    fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
@@ -246,7 +246,7 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 		fprintf(ref_matrix_fp, "%s\t", ref_count);
 		fprintf(ref_alt_matrix_fp, "%s\t", ref_alt_count);
 		if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
-				      VCF_FIELD_ALL) == BIO_READ_EOF )
+				      VCF_FIELD_ALL) == BL_READ_EOF )
 		{
 		    fprintf(stderr, "Closing %zu %s\n", c,
 			    file_list->filename[c]);
