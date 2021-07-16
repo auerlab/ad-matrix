@@ -215,7 +215,7 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	low_chrom = BL_VCF_CHROMOSOME(&vcf_call[c]);
 	for (c = c + 1; c < file_list->count; ++c)
 	{
-	    chr_cmp = chromosome_name_cmp(BL_VCF_CHROMOSOME(&vcf_call[c]),low_chrom);
+	    chr_cmp = bl_chromosome_name_cmp(BL_VCF_CHROMOSOME(&vcf_call[c]),low_chrom);
 	    if ( (file_list->fp[c] != NULL) && ((chr_cmp < 0) ||
 		    ((chr_cmp == 0) && (BL_VCF_POS(&vcf_call[c]) < low_pos))) )
 	    {
