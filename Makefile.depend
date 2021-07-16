@@ -1,7 +1,6 @@
 ad-matrix.o: ad-matrix.c ../local/include/xtend.h \
-  ../local/include/xtend-protos.h /usr/local/include/biolibc/dsv.h \
-  /usr/local/include/biolibc/biolibc.h ../local/include/biolibc/vcf.h \
-  ../local/include/biolibc/sam.h ../local/include/biolibc/biostring.h \
-  ad-matrix.h
+  ../local/include/xtend-protos.h ../local/include/biolibc/vcf.h \
+  ../local/include/biolibc/sam.h ../local/include/biolibc/biolibc.h \
+  ../local/include/biolibc/biostring.h ad-matrix.h
 	${CC} -c ${CFLAGS} ad-matrix.c
 
