@@ -176,17 +176,17 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
     {
 	vcf_call_init(&vcf_call[c], 16, 32, 64);
 	if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
-			      VCF_FIELD_ALL) == BL_READ_OK )
+			      BL_VCF_FIELD_ALL) == BL_READ_OK )
 	{
 #ifdef DEBUG
 	    fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
 		    c, file_list->filename[c],
-		    VCF_CHROMOSOME(&vcf_call[c]),
-		    VCF_POS(&vcf_call[c]), VCF_SINGLE_SAMPLE(&vcf_call[c]));
+		    BL_VCF_CHROMOSOME(&vcf_call[c]),
+		    BL_VCF_POS(&vcf_call[c]), BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
 	    fprintf(ref_alt_matrix_fp, "%zu %s %s %zu %s\n",
 		    c, file_list->filename[c],
-		    VCF_CHROMOSOME(&vcf_call[c]),
-		    VCF_POS(&vcf_call[c]), VCF_SINGLE_SAMPLE(&vcf_call[c]));
+		    BL_VCF_CHROMOSOME(&vcf_call[c]),
+		    BL_VCF_POS(&vcf_call[c]), BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
 #endif
 	}
 	else
@@ -211,16 +211,16 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	    ;
 	
 	/* Assume first sample has lowest position than scan the rest */
-	low_pos = VCF_POS(&vcf_call[c]);
-	low_chrom = VCF_CHROMOSOME(&vcf_call[c]);
+	low_pos = BL_VCF_POS(&vcf_call[c]);
+	low_chrom = BL_VCF_CHROMOSOME(&vcf_call[c]);
 	for (c = c + 1; c < file_list->count; ++c)
 	{
-	    chr_cmp = chromosome_name_cmp(VCF_CHROMOSOME(&vcf_call[c]),low_chrom);
+	    chr_cmp = chromosome_name_cmp(BL_VCF_CHROMOSOME(&vcf_call[c]),low_chrom);
 	    if ( (file_list->fp[c] != NULL) && ((chr_cmp < 0) ||
-		    ((chr_cmp == 0) && (VCF_POS(&vcf_call[c]) < low_pos))) )
+		    ((chr_cmp == 0) && (BL_VCF_POS(&vcf_call[c]) < low_pos))) )
 	    {
-		low_pos = VCF_POS(&vcf_call[c]);
-		low_chrom = VCF_CHROMOSOME(&vcf_call[c]);
+		low_pos = BL_VCF_POS(&vcf_call[c]);
+		low_chrom = BL_VCF_CHROMOSOME(&vcf_call[c]);
 	    }
 	}
 	
@@ -230,10 +230,10 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	for (c = 0; c < file_list->count; ++c)
 	{
 	    if ( (file_list->fp[c] != NULL) &&
-		 (VCF_POS(&vcf_call[c]) == low_pos) )
+		 (BL_VCF_POS(&vcf_call[c]) == low_pos) )
 	    {
 		/* Find start of ref count */
-		ref_count = VCF_SINGLE_SAMPLE(&vcf_call[c]);
+		ref_count = BL_VCF_SINGLE_SAMPLE(&vcf_call[c]);
 		strsep(&ref_count, ":");
 		
 		/* null-terminate ref count */
@@ -246,7 +246,7 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 		fprintf(ref_matrix_fp, "%s\t", ref_count);
 		fprintf(ref_alt_matrix_fp, "%s\t", ref_alt_count);
 		if ( vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
-				      VCF_FIELD_ALL) == BL_READ_EOF )
+				      BL_VCF_FIELD_ALL) == BL_READ_EOF )
 		{
 		    fprintf(stderr, "Closing %zu %s\n", c,
 			    file_list->filename[c]);
@@ -271,14 +271,14 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	    {
 		fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
 			c, file_list->filename[c],
-			VCF_CHROMOSOME(&vcf_call[c]),
-			VCF_POS(&vcf_call[c]),
-			VCF_SINGLE_SAMPLE(&vcf_call[c]));
+			BL_VCF_CHROMOSOME(&vcf_call[c]),
+			BL_VCF_POS(&vcf_call[c]),
+			BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
 		fprintf(ref_alt_matrix_fp, "%zu %s %s %zu %s\n",
 			c, file_list->filename[c],
-			VCF_CHROMOSOME(&vcf_call[c]),
-			VCF_POS(&vcf_call[c]),
-			VCF_SINGLE_SAMPLE(&vcf_call[c]));
+			BL_VCF_CHROMOSOME(&vcf_call[c]),
+			BL_VCF_POS(&vcf_call[c]),
+			BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
 	    }
 	    else
 	    {
