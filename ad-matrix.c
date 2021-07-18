@@ -174,7 +174,7 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
     puts("Reading first call from each sample...");
     for (c = 0; c < file_list->count; ++c)
     {
-	bl_vcf_call_init(&vcf_call[c], 16, 32, 64);
+	bl_vcf_init(&vcf_call[c], 16, 32, 64);
 	if ( bl_vcf_read_ss_call(file_list->fp[c], &vcf_call[c],
 			      BL_VCF_FIELD_ALL) == BL_READ_OK )
 	{
