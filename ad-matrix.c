@@ -181,11 +181,11 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 #ifdef DEBUG
 	    fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
 		    c, file_list->filename[c],
-		    BL_VCF_CHROMOSOME(&vcf_call[c]),
+		    BL_VCF_CHROM(&vcf_call[c]),
 		    BL_VCF_POS(&vcf_call[c]), BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
 	    fprintf(ref_alt_matrix_fp, "%zu %s %s %zu %s\n",
 		    c, file_list->filename[c],
-		    BL_VCF_CHROMOSOME(&vcf_call[c]),
+		    BL_VCF_CHROM(&vcf_call[c]),
 		    BL_VCF_POS(&vcf_call[c]), BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
 #endif
 	}
@@ -212,15 +212,15 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	
 	/* Assume first sample has lowest position than scan the rest */
 	low_pos = BL_VCF_POS(&vcf_call[c]);
-	low_chrom = BL_VCF_CHROMOSOME(&vcf_call[c]);
+	low_chrom = BL_VCF_CHROM(&vcf_call[c]);
 	for (c = c + 1; c < file_list->count; ++c)
 	{
-	    chr_cmp = bl_chromosome_name_cmp(BL_VCF_CHROMOSOME(&vcf_call[c]),low_chrom);
+	    chr_cmp = bl_chrom_name_cmp(BL_VCF_CHROM(&vcf_call[c]),low_chrom);
 	    if ( (file_list->fp[c] != NULL) && ((chr_cmp < 0) ||
 		    ((chr_cmp == 0) && (BL_VCF_POS(&vcf_call[c]) < low_pos))) )
 	    {
 		low_pos = BL_VCF_POS(&vcf_call[c]);
-		low_chrom = BL_VCF_CHROMOSOME(&vcf_call[c]);
+		low_chrom = BL_VCF_CHROM(&vcf_call[c]);
 	    }
 	}
 	
@@ -271,12 +271,12 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	    {
 		fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
 			c, file_list->filename[c],
-			BL_VCF_CHROMOSOME(&vcf_call[c]),
+			BL_VCF_CHROM(&vcf_call[c]),
 			BL_VCF_POS(&vcf_call[c]),
 			BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
 		fprintf(ref_alt_matrix_fp, "%zu %s %s %zu %s\n",
 			c, file_list->filename[c],
-			BL_VCF_CHROMOSOME(&vcf_call[c]),
+			BL_VCF_CHROM(&vcf_call[c]),
 			BL_VCF_POS(&vcf_call[c]),
 			BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
 	    }
