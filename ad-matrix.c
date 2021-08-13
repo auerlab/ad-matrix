@@ -14,7 +14,7 @@
 #include <limits.h>
 #include <stdbool.h>
 #include <errno.h>
-#include <xtend.h>
+#include <xtend/dsv.h>
 #include <biolibc/vcf.h>
 #include <biolibc/biostring.h>
 
