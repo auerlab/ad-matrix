@@ -179,11 +179,11 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 		BL_VCF_FIELD_ALL) == BL_READ_OK )
 	{
 #ifdef DEBUG
-	    fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
+	    fprintf(ref_matrix_fp, "%zu %s %s %" PRId64 " %s\n",
 		    c, file_list->filename[c],
 		    BL_VCF_CHROM(&vcf_call[c]),
 		    BL_VCF_POS(&vcf_call[c]), BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
-	    fprintf(ref_alt_matrix_fp, "%zu %s %s %zu %s\n",
+	    fprintf(ref_alt_matrix_fp, "%zu %s %s %" PRId64 " %s\n",
 		    c, file_list->filename[c],
 		    BL_VCF_CHROM(&vcf_call[c]),
 		    BL_VCF_POS(&vcf_call[c]), BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
@@ -269,12 +269,12 @@ void    build_matrix(file_list_t *file_list, char *matrix_stem)
 	{
 	    if ( file_list->fp[c] != NULL )
 	    {
-		fprintf(ref_matrix_fp, "%zu %s %s %zu %s\n",
+		fprintf(ref_matrix_fp, "%zu %s %s %" PRId64 " %s\n",
 			c, file_list->filename[c],
 			BL_VCF_CHROM(&vcf_call[c]),
 			BL_VCF_POS(&vcf_call[c]),
 			BL_VCF_SINGLE_SAMPLE(&vcf_call[c]));
-		fprintf(ref_alt_matrix_fp, "%zu %s %s %zu %s\n",
+		fprintf(ref_alt_matrix_fp, "%zu %s %s %" PRId64 " %s\n",
 			c, file_list->filename[c],
 			BL_VCF_CHROM(&vcf_call[c]),
 			BL_VCF_POS(&vcf_call[c]),
