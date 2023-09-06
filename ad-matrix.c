@@ -88,7 +88,7 @@ void    open_files(char *list_filename, file_list_t *file_list, char *mode)
     rewind(fp);
     for (c = 0; c < file_list->count; ++c)
     {
-	tsv_read_field(fp, temp_filename, PATH_MAX, &actual_len);
+	xt_tsv_read_field(fp, temp_filename, PATH_MAX, &actual_len);
 	if ( (file_list->filename[c] = strdup(temp_filename)) == NULL )
 	{
 	    fprintf(stderr,
